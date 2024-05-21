@@ -1,6 +1,6 @@
 //package pubsub;
 
-syntax = 'proto2';
+syntax = "proto3";
 
 option java_package = "edu.brown.cs.systems.xtrace";
 option java_outer_classname = "Reporting";

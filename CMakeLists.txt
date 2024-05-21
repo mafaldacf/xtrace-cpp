@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 project(libxtrace)
 
+include("CompileProto.cmake")
 include_directories( include )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 ")
@@ -11,9 +12,10 @@ find_package(Threads REQUIRED)
 
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 
-find_package(Protobuf 2 EXACT REQUIRED)
+find_package(Protobuf REQUIRED)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS proto/xtrace.proto)
+compile_protos(xtrace)
 
 add_library (libxtrace SHARED 
 	src/atomlayer.cpp
@@ -22,14 +24,13 @@ add_library (libxtrace SHARED
 	src/xtrace.cpp
 	src/xtrace_baggage.cpp
 	src/lexvarint.cpp
-	${PROTO_SRCS}
 )
 set_target_properties(libxtrace
 	PROPERTIES
 	OUTPUT_NAME "xtrace"
 	PREFIX "lib"
 )
-target_link_libraries(libxtrace Threads::Threads protobuf ${Boost_LIBRARIES} )
+target_link_libraries(libxtrace Threads::Threads xtrace_lib protobuf::libprotobuf ${Boost_LIBRARIES} )
 
 # Introduce variables:
 # * CMAKE_INSTALL_LIBDIR
@@ -62,7 +63,7 @@ target_include_directories(luaxtrace PRIVATE ${LUA_INCLUDE_DIR} /usr/local/inclu
 set_target_properties(luaxtrace PROPERTIES PREFIX "")
 set_target_properties(luaxtrace PROPERTIES SUFFIX ".so")
 
-target_link_libraries(luaxtrace libxtrace Threads::Threads protobuf boost_system )
+target_link_libraries(luaxtrace libxtrace Threads::Threads protobuf::libprotobuf boost_system )
 
 install(TARGETS luaxtrace DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
@@ -70,4 +71,4 @@ install(TARGETS luaxtrace DESTINATION ${CMAKE_INSTALL_LIBDIR})
 add_executable (main src/main.cc )
 
 target_include_directories(main PRIVATE /usr/local/include/xtrace)
-target_link_libraries(main libxtrace Threads::Threads protobuf boost_system  )
+target_link_libraries(main libxtrace Threads::Threads protobuf::libprotobuf boost_system  )
